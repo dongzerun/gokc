@@ -40,14 +40,14 @@ main_statements:  { }
 | vrrp_script_block { }
 | virtual_server_block { }
 | virtual_server_group_block { }
-| include { }
+| include_block { }
 | local_address_group_block { }
 
-include: STRING include_statements
+include_block: INCLUDE STRING include_statements
 
 include_statements: include_statement include_statements | include_statement
 include_statement:
-| STRING { }
+| INCLUDE STRING
 
 
 global:	GLOBALDEFS LB global_statements RB
