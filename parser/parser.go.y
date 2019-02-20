@@ -17,12 +17,14 @@ package parser
 %token           STATIC_RULES
 %token           VRRP_SYNC_GROUP GROUP
 %token           VRRP_INSTANCE
+%token           LOCAL_ADDRESS_GROUP
+%token           INCLUDE
 %token           USE_VMAC VERSION VMAC_XMIT_BASE NATIVE_IPV6 INTERFACE MCAST_SRC_IP UNICAST_SRC_IP UNICAST_PEER LVS_SYNC_DAEMON_INTERFACE VIRTUAL_ROUTER_ID NOPREEMPT PREEMPT_DELAY PRIORITY ADVERT_INT VIRTUAL_IPADDRESS VIRTUAL_IPADDRESS_EXCLUDED VIRTUAL_ROUTES STATE MASTER BACKUP GARP_MASTER_DELAY SMTP_ALERT AUTHENTICATION AUTH_TYPE AUTH_PASS PASS AH LABEL DEV SCOPE SITE LINK HOST NOWHERE GLOBAL BRD SRC FROM TO VIA GW OR TABLE METRIC TRACK_INTERFACE TRACK_SCRIPT DONT_TRACK_PRIMARY NOTIFY_MASTER NOTIFY_BACKUP NOTIFY_FAULT NOTIFY_STOP NOTIFY BLACKHOLE
 %token           VRRP_SCRIPT
 %token           SCRIPT INTERVAL TIMEOUT WEIGHT FALL RISE
 %token           VIRTUAL_SERVER_GROUP
 %token           VIRTUAL_SERVER
-%token           DELAY_LOOP LB_ALGO LB_KIND LVS_SCHED LVS_METHOD RR WRR LC WLC FO OVF LBLC LBLCR SH DH SED NQ NAT DR TUN PERSISTENCE_TIMEOUT PROTOCOL TCP UDP SORRY_SERVER REAL_SERVER FWMARK INHIBIT_ON_FAILURE TCP_CHECK HTTP_GET SSL_GET SMTP_CHECK DNS_CHECK MISC_CHECK URL PATH DIGEST STATUS_CODE CONNECT_TIMEOUT CONNECT_PORT CONNECT_IP BINDTO BIND_PORT RETRY HELO_NAME TYPE NAME MISC_PATH MISC_TIMEOUT WARMUP MISC_DYNAMIC NB_GET_RETRY DELAY_BEFORE_RETRY VIRTUALHOST ALPHA OMEGA QUORUM HYSTERESIS QUORUM_UP QUORUM_DOWN,
+%token           DELAY_LOOP LB_ALGO LB_KIND LVS_SCHED LVS_METHOD RR WRR LC WLC FO OVF LBLC LBLCR SH DH SED NQ NAT FNAT DR TUN PERSISTENCE_TIMEOUT PROTOCOL TCP UDP SORRY_SERVER REAL_SERVER FWMARK INHIBIT_ON_FAILURE TCP_CHECK HTTP_GET SSL_GET SMTP_CHECK DNS_CHECK MISC_CHECK URL PATH DIGEST STATUS_CODE CONNECT_TIMEOUT NB_SOCK_RETRY CONNECT_PORT CONNECT_IP BINDTO BIND_PORT RETRY HELO_NAME TYPE NAME MISC_PATH MISC_TIMEOUT WARMUP MISC_DYNAMIC NB_GET_RETRY DELAY_BEFORE_RETRY VIRTUALHOST ALPHA OMEGA QUORUM HYSTERESIS LADDR_GROUP_NAME QUORUM_UP QUORUM_DOWN,
 
 
 %%
@@ -38,6 +40,15 @@ main_statements:  { }
 | vrrp_script_block { }
 | virtual_server_block { }
 | virtual_server_group_block { }
+| include { }
+| local_address_group_block { }
+
+include: STRING include_statements
+
+include_statements: include_statement include_statements | include_statement
+include_statement:
+| STRING { }
+
 
 global:	GLOBALDEFS LB global_statements RB
 
@@ -167,6 +178,15 @@ virtual_server_group_statement: { }
 | IPADDR_RANGE NUMBER { }
 | FWMARK NUMBER { }
 
+local_address_group_block: LOCAL_ADDRESS_GROUP STRING LB local_address_group_statements RB
+
+local_address_group_statements: local_address_group_statement
+local_address_group_statements | local_address_group_statement
+
+local_address_group_statement: { }
+| ip46 STRING
+| ip46
+
 virtual_server_block: VIRTUAL_SERVER virtual_server_arg LB virtual_server_statements RB
 
 virtual_server_statements: virtual_server_statement virtual_server_statements | virtual_server_statement
@@ -193,6 +213,7 @@ virtual_server_statement: { }
 | QUORUM NUMBER { }
 | HYSTERESIS NUMBER { }
 | QUORUM_UP STRING { }
+| LADDR_GROUP_NAME STRING { }
 | QUORUM_DOWN STRING { }
 
 real_server_statements: real_server_statement real_server_statements | real_server_statement { }
@@ -212,6 +233,8 @@ tcp_check_statements: tcp_check_statement tcp_check_statements | tcp_check_state
 tcp_check_statement: { }
 | CONNECT_PORT NUMBER { }
 | CONNECT_TIMEOUT NUMBER { }
+| NB_SOCK_RETRY NUMBER { }
+| NB_GET_RETRY NUMBER { }
 | RETRY NUMBER { }
 | WARMUP NUMBER { }
 | DELAY_BEFORE_RETRY NUMBER { }
@@ -221,6 +244,8 @@ http_get_statements: http_get_statement http_get_statements | http_get_statement
 http_get_statement: { }
 | URL LB url_statements RB { }
 | CONNECT_TIMEOUT NUMBER { }
+| NB_SOCK_RETRY NUMBER { }
+| NB_GET_RETRY NUMBER { }
 | CONNECT_PORT NUMBER { }
 | NB_GET_RETRY NUMBER { }
 | DELAY_BEFORE_RETRY NUMBER { }
@@ -294,6 +319,7 @@ lb_kind: { }
 | NAT	{ }
 | DR  { }
 | TUN	{ }
+| FNAT	{ } 
 
 protocol: { }
 | TCP { }

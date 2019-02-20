@@ -130,6 +130,7 @@ var symbolTables = map[string]int{
 	"sed":            SED,
 	"nq":             NQ,
 	"NAT":            NAT,
+	"FNAT":           FNAT,
 	"DR":             DR,
 	"TUN":            TUN,
 	"persistence_timeout": PERSISTENCE_TIMEOUT,
@@ -151,6 +152,7 @@ var symbolTables = map[string]int{
 	"digest":              DIGEST,
 	"status_code":         STATUS_CODE,
 	"connect_timeout":     CONNECT_TIMEOUT,
+	"nb_sock_retry":       NB_SOCK_RETRY,
 	"connect_port":        CONNECT_PORT,
 	"connect_ip":          CONNECT_IP,
 	"bindto":              BINDTO,
@@ -172,6 +174,10 @@ var symbolTables = map[string]int{
 	"hysteresis":          HYSTERESIS,
 	"quorum_up":           QUORUM_UP,
 	"quorum_down":         QUORUM_DOWN,
+	"laddr_group_name":    LADDR_GROUP_NAME,
+
+	"include":             INCLUDE,
+	"local_address_group": LOCAL_ADDRESS_GROUP,
 }
 
 type Tokenizer struct {
@@ -279,7 +285,10 @@ func (t *Tokenizer) scanNextToken() (int, string) {
 	token := int(t.scanner.Scan())
 	s := t.scanner.TokenText()
 
-	for s == "!" || s == "#" {
+	for strings.HasPrefix(s, "!") ||
+		strings.HasPrefix(s, "#") ||
+		strings.HasPrefix(s, "//") ||
+		strings.HasPrefix(s, "/*") {
 		skipComments(&t.scanner)
 
 		token = int(t.scanner.Scan())
